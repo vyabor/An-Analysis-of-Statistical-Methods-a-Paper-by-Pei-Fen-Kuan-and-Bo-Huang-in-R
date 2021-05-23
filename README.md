@@ -1,0 +1,2 @@
+# An-Analysis-of-Statistical-Methods-a-Paper-by-Pei-Fen-Kuan-and-Bo-Huang-in-R
+In the paper "A Simple and Robust Method for Partially Matched Samples Using the P-Values Pooling Approach" by Pei Fen Kuan and Bo Huang, the authors employed several rigorous statistical methods in profiling gene expression of cancer cells before and after a drug treatment, or in response to certain stimuli. They argued that the methods introduced in the paper are better than the existing methods. Note that partially matched samples refers to a dataset with some NA values in a dataset of size 2n.
