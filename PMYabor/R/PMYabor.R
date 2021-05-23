@@ -1,0 +1,19 @@
+#' PMYabor Package
+#'
+#' Contains several functions to carry out statistical procedures mentioned in the paper "A Simple and Robust Method for Partially Matched Samples Using the P-Values Pooling Approach" by Pei Fen Kuan and Bo Huang.
+#'
+#' Functions include Liptak's weighted Z-test, a test based on Kim et al's modified t-statistic, Looney and Jones's corrected Z-test, Lin and Stivers's MLE based test under heteroscedasticity, and Ekbohm's MLE based test under homoscedasticity.
+#'
+#' The R functions are:
+#' liptak.z(x,y,alternative.pool='greater',alternative.t='two.sided')
+#' kim.t(x,y,alternative = 'two.sided')
+#' z.corrected(x,y,alternative = 'two.sided')
+#' MLE.het(x,y,alternative = 'two.sided')
+#' MLE.hom(x,y,alternative = 'two.sided')
+#'
+#' @docType package
+#'
+#' @author Vincent Yabor \email{vincent.yabor@stonybrook.edu}
+#'
+#' @name PMYabor
+NULL

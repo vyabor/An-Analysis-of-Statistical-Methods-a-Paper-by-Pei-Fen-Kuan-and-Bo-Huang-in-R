@@ -1,0 +1,287 @@
+---
+title: "PMYabor Package"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{PMYabor Package}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Description
+
+The purpose of this vignette is to provide some insight and direction in using the PMYabor package. This package consists of five functions which are used in a paper on partially matched samples by Pei Fen Kuan and Bo Huang^[A Simple and Robust Method for Partially Matched Samples Using the P-Values Pooling Approach](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3717400/).
+
+Partially matched samples occur when one's dataset, $x$ and $y$, have some missing values. The purpose of the paper is to provide a simple and robust method for handling these missing values in statistical analyses. The paper focused on microarrays and next generation sequencing as ways to demonstrate the efficiency of the method outlined.
+
+The five procedures outlined in the paper are the following:
+
+1. Liptak's weighted Z-test
+1. Kim et al's modified t-statistic
+1. Looney and Jones's corrected Z-test
+1. Lin and Stivers's MLE based test under heteroscedasticity
+1. Ehbohm's MLE based test under homoscedasticity
+
+## Functions and Setup
+```{r setup}
+library(PMYabor)
+```
+
+### Liptak's weighted Z-test
+
+#### Arguments
+* $x$ a (non-empty) numeric vector of data values
+* $y$ a (non-empty) numeric vector of data values
+* *alternative.pool* a character string specifying the alternative hypothesis for the weighted Z-test, must be one of "greater" (default), "less", or "two.sided"
+* *alternative.t* a character string specifying the alternative hypothesis in the event of a standard two sample t-test, must be one of "two.sided" (default), "greater" or "less"
+
+#### Usage
+```{r eval=FALSE}
+liptak.z(x,y,alternative.pool='greater',alternative.t='two.sided')
+```
+
+#### Formulas
+$$
+\begin{aligned}
+ p_{ci}=1-\Phi\Bigg(\frac{w_1Z_{1i}+w_2Z_{2i}}{\sqrt{w_1^2+w_2^2}}\Bigg)
+\end{aligned}
+$$
+where 
+$$
+\begin{aligned}
+Z_{ai}=\Phi^{-1}(1-p_{ai})
+\end{aligned}
+\\
+\begin{aligned}
+a=1,2
+\end{aligned}
+\\
+\begin{aligned}
+w_1=\sqrt{2n_1}
+\end{aligned}
+\\
+\begin{aligned}
+w_2=\sqrt{n_2+n_3}
+\end{aligned}
+$$
+Further, the two sided p-value is obtained by
+$$
+\begin{aligned}
+p_{ci}^*=\begin{cases} 2p_{ci} & p_{ci}<1/2 \\
+2(1-p_{ci}) & otherwise
+\end{cases}
+\end{aligned}
+$$
+
+#### Examples
+````{r}
+x <- c(120,212,NA,300,323,NA,NA,96,178,164)
+y <- c(NA,153,304,177,NA,90,89,200,110,40)
+liptak.z(x,y,alternative.pool = "greater")
+liptak.z(x,y,alternative.pool = "less")
+liptak.z(x,y,alternative.pool = "two.sided")
+````
+
+### Kim et al's modified t-statistic
+
+#### Arguments
+* $x$ a (non-empty) numeric vector of data values
+* $y$ a (non-empty) numeric vector of data values
+* *alternative* a character string specifying the alternative hypothesis, must be one of "two.sided" (default), "greater" or "less"
+
+#### Usage
+````{r eval=FALSE}
+kim.t(x,y,alternative = 'two.sided')
+````
+
+#### Formulas
+$$
+\begin{aligned}
+ t_3=\frac{{n_1}\bar{D}+{n_H}(\bar{T}-\bar{N})}{\sqrt{{n_1}{S_D}^2+{n_H}^2(S_N^2/n_3+S_T^2/n_2)}}
+\end{aligned}
+$$
+where $\bar{D}$ is the mean difference of the $n_1$ paired samples, $\bar{T}$ and $\bar{N}$ are the means for the $n_2$ and $n_3$ unmatched samples, respectively. $S_D$, $S_T$ and $S_N$ are the corresponding sample standard deviations, and $n_H$ is the harmonic mean of $n_3$ and $n_3$. The null distribution of $t_3$ is approximated with a standard Gaussian distribution.
+
+Note that 
+$$
+\begin{aligned}
+n_H=\frac{2}{1/n_2+1/n_3}
+\end{aligned}
+$$
+
+#### Examples
+````{r}
+x <- c(120,212,NA,300,323,NA,NA,96,178,164)
+y <- c(NA,153,304,177,NA,90,89,200,110,40)
+kim.t(x,y,alternative = "two.sided")
+kim.t(x,y,alternative = "greater")
+kim.t(x,y,alternative = "less")
+````
+
+### Looney and Jones's corrected Z-test
+
+#### Arguments
+* $x$ a (non-empty) numeric vector of data values
+* $y$ a (non-empty) numeric vector of data values
+* *alternative* a character string specifying the alternative hypothesis, must be one of "two.sided" (default), "greater" or "less"
+
+#### Usage
+````{r eval=FALSE}
+z.corrected(x,y,alternative = 'two.sided')
+````
+
+#### Formulas
+$$
+\begin{aligned}
+ Z_{corr}=\frac{\bar{T^*}-\bar{N^*}}{\sqrt{S_T^{*2}/(n_1+n_2)+S_N^{*2}/(n_1+n_3)-2n_1S_{TN_1}/(n_1+n_2)(n_1+n_3)}}
+\end{aligned}
+$$
+where $\bar{T^*}$ and $\bar{N^*}$ are the means for the $n_1+n_2$ and $n_1+n_3$ matched and unmatched samples combined, respectively. $S_T^{*}$ and $S_N^{*}$ are the corresponding sample standard deviations, and $S_{TN_1}$ is the sample covariance of the $n_1$ paired samples. $Z_{corr}$ reduces to a paired sample or two-sample Z-test when $n_2=n_3=0$ or $n_1$, respectively.
+
+Note that
+$$
+\begin{aligned}
+S_{TN_1}=\frac{\sum_{i=1}^{n_1}(T_i-\bar{T_1})(N_i-\bar{N_1})}{(n_1-1)}
+\end{aligned}
+$$
+
+#### Examples
+````{r}
+x <- c(120,212,NA,300,323,NA,NA,96,178,164)
+y <- c(NA,153,304,177,NA,90,89,200,110,40)
+z.corrected(x,y,alternative = "two.sided")
+z.corrected(x,y,alternative = "greater")
+z.corrected(x,y,alternative = "less")
+````
+
+### Lin and Stivers's MLE based test under heteroscedasticity
+
+#### Arguments
+* $x$ a (non-empty) numeric vector of data values
+* $y$ a (non-empty) numeric vector of data values
+* *alternative* a character string specifying the alternative hypothesis, must be one of "two.sided" (default), "greater" or "less"
+
+#### Usage
+````{r eval=FALSE}
+MLE.het(x,y,alternative = 'two.sided')
+````
+
+#### Formulas
+$$
+\begin{aligned}
+ Z_{LS}=\frac{\{f(\bar{T_1}-\bar{T})-g(\bar{N_1}-\bar{N})+\bar{T}-\bar{N}\}}{\sqrt{V_1}}
+\end{aligned}
+$$
+where
+$$
+\begin{aligned}
+r=S_{TN_1}/S_{T_1}S_{N_1}
+\end{aligned}
+\\
+\begin{aligned}
+f=n_1(n_1+n_3+n_2S_{TN_1}/S_{T_1}^2)\{(n_1+n_2)(n_1+n_3)-n_2n_3r^2\}^{-1}
+\end{aligned}
+\\
+\begin{aligned}
+g=n_1(n_1+n_2+n_3S_{TN_1}/S_{N_1}^2)\{(n_1+n_2)(n_1+n_3)-n_2n_3r^2\}^{-1}
+\end{aligned}
+\\
+\begin{aligned}
+V_1=\frac{\{f^2/n_1+(1-f)^2/n_2\}S_{T_1}^2(n_1-1)+\{g^2/n_1+(1-g)^2/n_3\}S_{N_1}^2(n_1-1)-2fgS_{TN_1}(n_1-1)/n_1}{(n_1-1)}
+\end{aligned}
+$$
+$\bar{T_1}$ and $\bar{N_1}$ are the means for the n1 paired samples. $S_{T1}$ and $S_{N1}$ are the corresponding sample standard deviations, respectively. Further, $Z_{LS}$ can be approximated by a $t$ distribution with $n_1$ degrees of freedom.
+
+#### Examples
+````{r}
+# Generating heteroscedastic data:
+set.seed(123)
+n <- 15
+x1 <- 1:n
+sd1 <- runif(n,0,5)
+het1 <- rnorm(n,0,sd1*x1)
+y1 <- x1+het1
+y1[c(1,2,3,6)] <- NA
+
+set.seed(321)
+x2 <- 1:n
+sd2 <- runif(n,0,5)
+het2 <- rnorm(n,0,sd2*x2)
+y2 <- x2+het2
+y2[c(10,13,14,15)] <- NA
+
+MLE.het(y1,y2,alternative = "two.sided")
+MLE.het(y1,y2,alternative = "greater")
+MLE.het(y1,y2,alternative = "less")
+````
+
+### Ehbohm's MLE based test under homoscedasticity
+
+#### Arguments
+* $x$ a (non-empty) numeric vector of data values
+* $y$ a (non-empty) numeric vector of data values
+* *alternative* a character string specifying the alternative hypothesis, must be one of "two.sided" (default), "greater" or "less"
+
+#### Usage
+````{r eval=FALSE}
+MLE.hom(x,y,alternative = 'two.sided')
+````
+
+#### Formulas
+$$
+\begin{aligned}
+ Z_E=\frac{\{f^*(\bar{T_1}-\bar{T})-g^*(\bar{N_1}-\bar{N})+\bar{T}-\bar{N}\}}{\sqrt{V_1^*}}
+\end{aligned}
+$$
+where
+$$
+\begin{aligned}
+r=S_{TN_1}/S_{T_1}S_{N_1}
+\end{aligned}
+\\
+\begin{aligned}
+f^*=n_1(n_1+n_3+n_2r)\{(n_1+n_2)(n_1+n_3)-n_2n_3r^2\}^{-1}
+\end{aligned}
+\\
+\begin{aligned}
+g^*=n_1(n_1+n_2+n_3r)\{(n_1+n_2)(n_1+n_3)-n_2n_3r^2\}^{-1}
+\end{aligned}
+\\
+\begin{aligned}
+\hat{\sigma}^2=\frac{S_{T_1}^2(n_1-1)+S_{N_1}^2(n_1-1)+(1+r^2)[S_T^2(n_2-1)+S_{N_1}^2(n_3-1)]}{2(n_1-1)+(1+r^2)(n_2+n_3-2)}
+\end{aligned}
+\\
+\begin{aligned}
+V_1^*=\hat{\sigma}^2\Bigg\{\frac{2n_1(1-r)+(n_2+n_3)(1-r^2)}{(n_1+n_2)(n_1+n_3)-n_2n_3r^2}\Bigg\}
+\end{aligned}
+$$
+$Z_E$ can be approximated by a $t$ distribution with $n_1$ degrees of freedom.
+
+#### Examples
+````{r}
+# Generating homoscedastic data:
+set.seed(123)
+n <- 15
+x1 <- 1:n
+het1 <- rnorm(n,0,5)
+y1 <- x1+het1
+y1[c(1,2,3,6)] <- NA
+
+set.seed(321)
+x2 <- 1:n
+het2 <- rnorm(n,0,5)
+y2 <- x2+het2
+y2[c(10,13,14,15)] <- NA
+
+MLE.hom(y1,y2,alternative = "two.sided")
+MLE.hom(y1,y2,alternative = "greater")
+MLE.hom(y1,y2,alternative = "less")
+````
+
+## References
